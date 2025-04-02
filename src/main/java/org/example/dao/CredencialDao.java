@@ -7,6 +7,7 @@ import org.example.model.TipoPermiso;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class CredencialDao {
 
@@ -80,7 +81,7 @@ public class CredencialDao {
             e.printStackTrace();
         }
     }
-    public Credencial obtenerCredencialPorId (int id)
+    public Optional<Credencial> obtenerCredencialPorId (int id)
     {
      String query = "select * from credenciales where id_usuario = ?";
      try(Connection connection = DBConnection.getConnection();
@@ -94,7 +95,7 @@ public class CredencialDao {
                  credencial.setUsername(rs.getString("username"));
                  credencial.setPassword(rs.getString("password"));
                  credencial.setPermiso(TipoPermiso.valueOf(rs.getString("permiso")));
-                 return credencial;
+                 return Optional.of(credencial);
              }
          }
 
@@ -102,6 +103,6 @@ public class CredencialDao {
      {
          e.printStackTrace();
      }
-     return null;
+     return Optional.empty();
     }
 }

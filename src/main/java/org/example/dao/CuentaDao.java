@@ -101,7 +101,6 @@ public class CuentaDao {
                 cuenta.setSaldo(rs.getDouble("saldo"));
                 return Optional.of(cuenta);
 
-
             }
         }catch(SQLException e)
         {
