@@ -10,10 +10,8 @@ import org.example.repository.CuentaDao;
 import org.example.repository.UsuarioDao;
 
 import javax.swing.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Scanner;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class UsuarioService {
     private static UsuarioDao usuarioDao = new UsuarioDao();
@@ -23,12 +21,11 @@ public class UsuarioService {
 
     public List<Usuario> listarUsuarios(Credencial credencial) throws NoAutorizadoException
     {
-        List<Usuario> usuarios = new ArrayList<Usuario>();
         if (credencial.getPermiso().equals(TipoPermiso.CLIENTE))
         {
             throw new NoAutorizadoException("\nNo tienes permisos para listar usuarios");
         }
-        usuarios=usuarioDao.getAll();
+        List<Usuario> usuarios =  usuarios=usuarioDao.getAll();
         if (usuarios.isEmpty())
         {
             System.out.println("Usuarios no encontrados");
@@ -36,7 +33,7 @@ public class UsuarioService {
             return usuarios;
     }
 
-    public Optional<Usuario> buscarPorDniOEmail(Credencial credencial, String StringABuscar) throws NoAutorizadoException
+    public Usuario buscarPorDniOEmail(Credencial credencial, String StringABuscar) throws NoAutorizadoException
     {
         if (credencial.getPermiso().equals(TipoPermiso.CLIENTE))
         {
@@ -44,24 +41,118 @@ public class UsuarioService {
         }
 
         List<Usuario> usuarios = usuarioDao.getAll();
+
         return usuarios.stream()
                 .filter(u -> u.getDni().equals(StringABuscar)|| u.getEmail().equalsIgnoreCase(StringABuscar))
-                .findFirst();
+                .findFirst()
+                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
     }
-    public void modificarUsuario(Credencial credencial)
+
+    public void modificarUsuario(Credencial credencial) throws NoAutorizadoException
     {
        if (credencial.getPermiso().equals(TipoPermiso.CLIENTE))
        {
+           Optional<Usuario> cliente = usuarioDao.getById(credencial.getId_usuario());
+            if (cliente.isPresent())
+            {
+                Usuario usuarioCliente = cliente.get();
 
+                datosAModificar(usuarioCliente);
+
+                usuarioDao.update(usuarioCliente);
+            } else
+            {
+                System.out.println("Usuario no encontrado");
+            }
        }
+
+
        else if (credencial.getPermiso().equals(TipoPermiso.GESTOR))
        {
 
-       }else
+        List<Credencial> credenciales = credencialDao.getAll();
+        List<Usuario> usuarios = usuarioDao.getAll();
+
+        List<Integer> idClientes = credenciales.stream()
+                .filter(c-> c.getPermiso().equals(TipoPermiso.CLIENTE))
+                .map(Credencial::getId_usuario)
+                .toList();
+
+        List<Usuario> clientes = usuarios.stream()
+                .filter(c -> idClientes.contains(c.getId_usuario()))
+                .toList();
+
+           System.out.println("Lista de clientes");
+           clientes.forEach(System.out::println);
+
+           System.out.println("Id del cliente a modificar: ");
+           int id = scanner.nextInt();
+           scanner.nextLine();
+           if (idClientes.contains(id))
+           {
+               Optional<Usuario> user = usuarioDao.getById(id);
+
+               if (user.isPresent())
+               {
+                   datosAModificar(user.get());
+
+                   usuarioDao.update(user.get());
+               }
+               else System.out.println("Usuario no encontrado");
+
+           } else throw new NoAutorizadoException("\nNo estas autorizado para cambiar datos de usuarios que no sean clientes");
+
+       }
+
+
+       else
        {
+
+
 
        }
 
     }
+    public void datosAModificar(Usuario usuario)
+    {
+        int opt;
+        do {
+            System.out.println("Datos del usuario");
+            System.out.println(usuario);
+            System.out.println("\nQue quiere modificar: ");
+            System.out.println("[1]-Nombre");
+            System.out.println("[2]-Apellido");
+            System.out.println("[3]-Email");
+            System.out.println("-----------");
+            System.out.println("[0]-Finalizar");
+            System.out.print("Seleccione opcion: ");
+            opt = scanner.nextInt();
+            scanner.nextLine();
 
+            switch (opt)
+            {
+                case 1:
+                    System.out.println("Nombre: ");
+                    String nombre = scanner.nextLine();
+                    usuario.setNombre(nombre);
+                    break;
+                case 2:
+                    System.out.println("Apellido: ");
+                    String apellido = scanner.nextLine();
+                    usuario.setApellido(apellido);
+                    break;
+                case 3:
+                    System.out.println("Email: ");
+                    String email = scanner.nextLine();
+                    usuario.setEmail(email);
+                    break;
+                case 0:
+                    break;
+                default:
+                    System.out.println("Opcion invalida");
+                    break;
+            }
+
+        }while (opt != 0);
+    }
 }

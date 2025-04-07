@@ -56,9 +56,7 @@ public class MainMenu {
                             usuarios.forEach(System.out::println);
                         break;
                     case 2:
-                            buscadorDeUsuario(credencial)
-                                    .ifPresentOrElse(System.out::println,
-                                    () -> System.out.println("Usuario no encontrado"));;
+                            buscadorDeUsuario(credencial);
                         break;
                     case 3:
                             buscadorDeUsuario(credencial);
@@ -181,7 +179,7 @@ public class MainMenu {
 
     }
 
-    public Optional<Usuario> buscadorDeUsuario(Credencial credencial)
+    public void buscadorDeUsuario(Credencial credencial)
     {
         int opt;
         System.out.println("Que buscais?");
@@ -197,16 +195,19 @@ public class MainMenu {
             case 1:
                 System.out.println("Introduzca el DNI: ");
                 String dni = scanner.nextLine();
-                return usuarioService.buscarPorDniOEmail(credencial,dni);
+                System.out.println(usuarioService.buscarPorDniOEmail(credencial,dni));
+
+                break;
             case 2:
                 System.out.println("Introduzca el Email: ");
                 String email = scanner.nextLine();
-                return usuarioService.buscarPorDniOEmail(credencial,email);
+                System.out.println(usuarioService.buscarPorDniOEmail(credencial,email));
+                break;
             case 0:
-                return Optional.empty();
+                break;
             default:
                 System.out.println("Opcion no valida");
-                return Optional.empty();
+                break;
         }
     }
 }
