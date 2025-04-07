@@ -29,6 +29,11 @@
             <version>8.0.33</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.7.36</version> <!-- misma versión que tu slf4j-api -->
+        </dependency>
 
     </dependencies>
 

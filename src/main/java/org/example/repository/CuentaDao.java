@@ -1,16 +1,17 @@
-package org.example.dao;
+package org.example.repository;
 
 import org.example.config.DBConnection;
-import org.example.model.Cuenta;
-import org.example.model.TipoCuenta;
+import org.example.interfaces.IRepository;
+import org.example.model.entities.Cuenta;
+import org.example.model.enums.TipoCuenta;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class CuentaDao {
-    public void agregarCuenta (Cuenta cuenta)
+public class CuentaDao implements IRepository<Cuenta> {
+    public int addNew (Cuenta cuenta)
     {
         String query = "insert into cuentas (id_usuario, tipo, saldo) values (?,?,?)";
         try(Connection connection = DBConnection.getConnection();
@@ -25,9 +26,10 @@ public class CuentaDao {
         {
             e.printStackTrace();
         }
+        return cuenta.getId_usuario();
     }
 
-    public List<Cuenta> obtenerCuentas ()
+    public List<Cuenta> getAll ()
     {
         List<Cuenta> cuentas = new ArrayList<>();
         String query = "select * from cuentas";
@@ -53,7 +55,7 @@ public class CuentaDao {
         return cuentas;
     }
 
-    public void actualizarCuenta(Cuenta cuenta)
+    public void update(Cuenta cuenta)
     {
        String query = "update cuentas set tipo = ?,saldo = ? where id_usuario = ?";
 
@@ -70,7 +72,7 @@ public class CuentaDao {
            e.printStackTrace();
        }
     }
-    public void eliminarCuenta (Cuenta cuenta)
+    public void delete (Cuenta cuenta)
     {
         String query = "delete from cuentas where id_usuario = ?";
         try(Connection connection = DBConnection.getConnection();
@@ -85,7 +87,7 @@ public class CuentaDao {
                     }
     }
 
-    public Optional<Cuenta> obtenerCuentaPorId(int id)
+    public Optional<Cuenta> getById(int id)
     {
         String query = "select * from cuentas where id_usuario = ?";
         try (Connection connection = DBConnection.getConnection();
@@ -109,6 +111,4 @@ public class CuentaDao {
 
         return Optional.empty();
     }
-
-
 }

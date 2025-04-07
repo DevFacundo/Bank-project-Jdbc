@@ -1,4 +1,6 @@
-package org.example.model;
+package org.example.model.entities;
+
+import org.example.model.enums.TipoCuenta;
 
 import java.time.LocalDateTime;
 
@@ -10,6 +12,18 @@ public class Cuenta {
     private LocalDateTime fecha_creacion;
 
     public Cuenta() {}
+
+    public Cuenta(Integer id_usuario, Double saldo) {
+        this.id_usuario = id_usuario;
+        this.saldo = saldo;
+        this.tipo_cuenta = TipoCuenta.CAJA_AHORRO;
+    }
+
+    public Cuenta(TipoCuenta tipo_cuenta, Double saldo, Integer id_usuario) {
+        this.tipo_cuenta = tipo_cuenta;
+        this.saldo = saldo;
+        this.id_usuario = id_usuario;
+    }
 
     public Cuenta(Integer id_cuenta, Integer id_usuario, TipoCuenta tipo_cuenta, Double saldo, LocalDateTime fecha_creacion) {
         this.id_cuenta = id_cuenta;

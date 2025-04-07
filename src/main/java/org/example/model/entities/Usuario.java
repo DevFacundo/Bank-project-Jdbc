@@ -1,7 +1,6 @@
-package org.example.model;
+package org.example.model.entities;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 
 public class Usuario {
     private Integer id_usuario;

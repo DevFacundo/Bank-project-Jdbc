@@ -1,19 +1,18 @@
-package org.example.dao;
+package org.example.repository;
 
 import org.example.config.DBConnection;
-import org.example.model.Credencial;
-import org.example.model.TipoPermiso;
+import org.example.interfaces.IRepository;
+import org.example.model.entities.Credencial;
+import org.example.model.enums.TipoPermiso;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class CredencialDao {
+public class CredencialDao implements IRepository<Credencial> {
 
-    public CredencialDao() {}
-
-    public void agregarCredencial(Credencial credencial) {
+    public int addNew(Credencial credencial) {
         String query = "insert into credenciales(id_usuario, username, password, permiso) values (?,?,?,?)";
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement stmt = connection.prepareStatement(query);)
@@ -27,9 +26,10 @@ public class CredencialDao {
         {
             e.printStackTrace();
         }
+        return credencial.getId_usuario();
     }
 
-    public List<Credencial> getCredenciales() {
+    public List<Credencial> getAll() {
         List<Credencial> credenciales = new ArrayList<>();
         String query = "select * from credenciales";
         try (Connection connection = DBConnection.getConnection();
@@ -52,7 +52,7 @@ public class CredencialDao {
         return credenciales;
     }
 
-    public void eliminarCredencial(Credencial credencial) {
+    public void delete(Credencial credencial) {
         String query = "delete from credenciales where id_usuario = ?";
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement stmt = connection.prepareStatement(query))
@@ -65,7 +65,7 @@ public class CredencialDao {
         }
     }
 
-    public void actualizarCredencial(Credencial credencial) {
+    public void update(Credencial credencial) {
         String query = "update credenciales set username = ?, password = ?, permiso = ? where id_usuario = ?";
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement stmt = connection.prepareStatement(query))
@@ -81,7 +81,7 @@ public class CredencialDao {
             e.printStackTrace();
         }
     }
-    public Optional<Credencial> obtenerCredencialPorId (int id)
+    public Optional<Credencial> getById (int id)
     {
      String query = "select * from credenciales where id_usuario = ?";
      try(Connection connection = DBConnection.getConnection();
@@ -104,5 +104,29 @@ public class CredencialDao {
          e.printStackTrace();
      }
      return Optional.empty();
+    }
+
+    public Optional<Credencial> getCredentialByUserPass(String usuario, String pass) {
+        String query = "select * from credenciales where username = ? and password = ?";
+        try (Connection connection = DBConnection.getConnection();
+            PreparedStatement stmt = connection.prepareStatement(query))
+        {
+            stmt.setString(1, usuario);
+            stmt.setString(2, pass);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Credencial credencial = new Credencial();
+                    credencial.setId_usuario(rs.getInt("id_usuario"));
+                    credencial.setUsername(rs.getString("username"));
+                    credencial.setPassword(rs.getString("password"));
+                    credencial.setPermiso(TipoPermiso.valueOf(rs.getString("permiso")));
+                    return Optional.of(credencial);
+                }
+            }
+        }catch (SQLException e)
+        {
+            e.printStackTrace();
+        }
+        return Optional.empty();
     }
 }

@@ -1,4 +1,6 @@
-package org.example.model;
+package org.example.model.entities;
+
+import org.example.model.enums.TipoPermiso;
 
 public class Credencial {
     private Integer id_credencial;
@@ -8,6 +10,13 @@ public class Credencial {
     private TipoPermiso permiso;
 
     public Credencial() {
+    }
+
+    public Credencial(Integer id_usuario, String username, String password) {
+        this.id_usuario = id_usuario;
+        this.username = username;
+        this.password = password;
+        this.permiso = TipoPermiso.CLIENTE;
     }
 
     public Credencial(Integer id_credencial, Integer id_usuario, String username, String password, TipoPermiso permiso) {

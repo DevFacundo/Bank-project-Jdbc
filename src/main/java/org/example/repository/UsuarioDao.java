@@ -1,36 +1,44 @@
-package org.example.dao;
+package org.example.repository;
 
 import org.example.config.DBConnection;
-import org.example.model.Usuario;
+import org.example.interfaces.IRepository;
+import org.example.model.entities.Usuario;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class UsuarioDao {
+public class UsuarioDao implements IRepository<Usuario> {
 
-    public void agregarUsuario(Usuario usuario) {
+    public int addNew(Usuario usuario) {
         String query = "insert into usuarios (nombre,apellido,dni,email) values (?,?,?,?)";
 
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement stmt = connection.prepareStatement(query)) {
+             PreparedStatement stmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);) {
             stmt.setString(1, usuario.getNombre());
             stmt.setString(2, usuario.getApellido());
             stmt.setString(3, usuario.getDni());
             stmt.setString(4, usuario.getEmail());
             stmt.executeUpdate();
+
+            ResultSet rs = stmt.getGeneratedKeys();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+        return -1;
     }
 
-    public List<Usuario> obtenerUsuarios() {
-        String query = "select * from usuario";
+    public List<Usuario> getAll() {
+        String query = "select * from usuarios";
         List<Usuario> usuarios = new ArrayList<>();
         try (Connection connection = DBConnection.getConnection();
              Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
+             ResultSet rs = stmt.executeQuery(query))
+        {
             while (rs.next()) {
                 usuarios.add(new Usuario(
                         rs.getInt("id_usuario"),
@@ -46,7 +54,7 @@ public class UsuarioDao {
         return usuarios;
     }
 
-    public void actualizarUsuario(Usuario usuario) throws SQLException {
+    public void update(Usuario usuario) {
         String query = "update usuarios set nombre = ?,apellido = ?,dni = ?,email = ? where id_usuario = ?";
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement stmt = connection.prepareStatement(query)) {
@@ -61,18 +69,18 @@ public class UsuarioDao {
         }
     }
 
-    public void eliminarUsuario(Integer id_usuario) {
+    public void delete(Usuario usuario) {
         String query = "delete from usuarios where id_usuario = ?";
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setInt(1, id_usuario);
+            stmt.setInt(1, usuario.getId_usuario());
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    public Optional<Usuario> obtenerUsuarioPorId(int id) {
+    public Optional<Usuario> getById(int id) {
         String query = "select * from usuarios where id_usuario = ?";
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement stmt = connection.prepareStatement(query);) {
