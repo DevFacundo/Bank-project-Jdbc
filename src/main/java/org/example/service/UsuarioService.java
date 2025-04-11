@@ -48,71 +48,89 @@ public class UsuarioService {
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
     }
 
+
+///  MODIFICAR USUARIO Y LAS SIGUIENTES SON PARA CADA TIPO DE PERMSISO
     public void modificarUsuario(Credencial credencial) throws NoAutorizadoException
     {
        if (credencial.getPermiso().equals(TipoPermiso.CLIENTE))
        {
-           Optional<Usuario> cliente = usuarioDao.getById(credencial.getId_usuario());
-            if (cliente.isPresent())
+           modificarCliente(credencial);
+       }
+       else if (credencial.getPermiso().equals(TipoPermiso.GESTOR))
+       {
+            modificarComoGestor(credencial);
+       }
+       else
+       {
+           modificarComoAdmin(credencial);
+       }
+    }
+    public void modificarCliente(Credencial credencial)
+    {
+        Optional<Usuario> cliente = usuarioDao.getById(credencial.getId_usuario());
+        if (cliente.isPresent())
+        {
+            Usuario usuarioCliente = cliente.get();
+
+            datosAModificar(usuarioCliente);
+
+            usuarioDao.update(usuarioCliente);
+        } else
+        {
+            System.out.println("Usuario no encontrado");
+        }
+    }
+    public void modificarComoAdmin (Credencial credencial)
+    {
+
+            List<Usuario> usuarios = usuarioDao.getAll();
+            System.out.println("Lista de Usuarios: \n"+usuarios);
+
+            System.out.println("Ingrese el Id del usuario a modificar: ");
+            int id = scanner.nextInt();scanner.nextLine();
+
+            Optional<Usuario> usuario = usuarioDao.getById(id);
+
+            if (usuario.isPresent())
             {
-                Usuario usuarioCliente = cliente.get();
-
-                datosAModificar(usuarioCliente);
-
-                usuarioDao.update(usuarioCliente);
-            } else
+                datosAModificar(usuario.get());
+                usuarioDao.update(usuario.get());
+            }
+            else
             {
                 System.out.println("Usuario no encontrado");
             }
-       }
+        }
+    public void modificarComoGestor(Credencial credencial)
+    {
+        List<Usuario> clientes = listarClientes();
+        List<Integer> idClientes = clientes.stream()
+                        .map(Usuario::getId_usuario)
+                        .toList();
 
+        System.out.println("Lista de clientes");
+        clientes.forEach(System.out::println);
 
-       else if (credencial.getPermiso().equals(TipoPermiso.GESTOR))
-       {
+        System.out.println("Id del cliente a modificar: ");
+        int id = scanner.nextInt();
+        scanner.nextLine();
 
-        List<Credencial> credenciales = credencialDao.getAll();
-        List<Usuario> usuarios = usuarioDao.getAll();
+        if (idClientes.contains(id))
+        {
+            Optional<Usuario> user = usuarioDao.getById(id);
 
-        List<Integer> idClientes = credenciales.stream()
-                .filter(c-> c.getPermiso().equals(TipoPermiso.CLIENTE))
-                .map(Credencial::getId_usuario)
-                .toList();
+            if (user.isPresent())
+            {
+                datosAModificar(user.get());
 
-        List<Usuario> clientes = usuarios.stream()
-                .filter(c -> idClientes.contains(c.getId_usuario()))
-                .toList();
+                usuarioDao.update(user.get());
+            }
+            else System.out.println("Usuario no encontrado");
 
-           System.out.println("Lista de clientes");
-           clientes.forEach(System.out::println);
-
-           System.out.println("Id del cliente a modificar: ");
-           int id = scanner.nextInt();
-           scanner.nextLine();
-           if (idClientes.contains(id))
-           {
-               Optional<Usuario> user = usuarioDao.getById(id);
-
-               if (user.isPresent())
-               {
-                   datosAModificar(user.get());
-
-                   usuarioDao.update(user.get());
-               }
-               else System.out.println("Usuario no encontrado");
-
-           } else throw new NoAutorizadoException("\nNo estas autorizado para cambiar datos de usuarios que no sean clientes");
-
-       }
-
-
-       else
-       {
-
-
-
-       }
+        } else throw new NoAutorizadoException("\nNo estas autorizado para cambiar datos de usuarios que no sean clientes");
 
     }
+    // PIDE LOS DATOS AL USUARIO
     public void datosAModificar(Usuario usuario)
     {
         int opt;
@@ -155,4 +173,74 @@ public class UsuarioService {
 
         }while (opt != 0);
     }
+
+
+    public void eliminarUsuario(Credencial credencial) throws NoAutorizadoException
+    {
+        if (credencial.getPermiso().equals(TipoPermiso.GESTOR))
+        {
+
+
+        } else if (credencial.getPermiso().equals(TipoPermiso.ADMINISTRADOR))
+        {
+            eliminarCualquierUsuario(credencial);
+        } else
+        {
+            throw new NoAutorizadoException("No tienes permisos para eliminar usuarios");
+        }
+    }
+
+    public void eliminarCliente (Credencial credencial)
+    {
+        List<Usuario> clientes = listarClientes();
+
+        System.out.println("Lista de clientes: \n"+clientes);
+        System.out.println("Id del cliente a modificar: ");
+        int id = scanner.nextInt();scanner.nextLine();
+
+        Optional<Usuario> cliente = usuarioDao.getById(id);
+
+        if (cliente.isPresent())
+        {
+            usuarioDao.update(cliente.get());
+        }
+        else
+        {
+            System.out.println("Usuario no encontrado");
+        }
+    }
+    public void eliminarCualquierUsuario(Credencial credencial)
+    {
+        List<Usuario> usuarios = usuarioDao.getAll();
+        System.out.println("Lista de usuarios: \n"+usuarios);
+        System.out.println("Ingrese el Id del usuario a elliminar: ");
+        int id = scanner.nextInt(); scanner.nextLine();
+
+        Optional<Usuario> usuario = usuarioDao.getById(id);
+        if (usuario.isPresent())
+        {
+            usuarioDao.delete(usuario.get());
+        }else
+        {
+            System.out.println("Usuario no encontrado");
+        }
+    }
+    public List<Usuario> listarClientes ()
+    {
+        List<Credencial> credenciales = credencialDao.getAll();
+        List<Usuario> usuarios = usuarioDao.getAll();
+
+        List<Integer> idClientes = credenciales.stream()
+                .filter(e -> e.getPermiso().equals(TipoPermiso.CLIENTE))
+                .map(Credencial::getId_usuario)
+                .toList();
+
+        List<Usuario> clientes = usuarios.stream()
+                .filter(e-> idClientes.contains(e.getId_usuario()))
+                .toList();
+
+        return clientes;
+    }
+
+
 }
